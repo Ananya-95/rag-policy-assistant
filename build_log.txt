@@ -1,0 +1,4 @@
+INFO Load pretrained SentenceTransformer: BAAI/bge-small-en-v1.5
+INFO Use pytorch device_name: cpu
+INFO Load pretrained SentenceTransformer: BAAI/bge-small-en-v1.5
+INFO Use pytorch device_name: cpu

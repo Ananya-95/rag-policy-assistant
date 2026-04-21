@@ -9,10 +9,11 @@ import os
 from typing import Optional
 
 from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.embeddings import Embeddings
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.document_loaders import PyMuPDFLoader
 
 from config.settings import settings
 
@@ -31,34 +32,46 @@ class PDFIngester:
         for file in os.listdir(self.data_path):
             if file.endswith(".pdf"):
                 file_path = os.path.join(self.data_path, file)
-                loader = PyPDFLoader(file_path)
+                #loader = PyPDFLoader(file_path)
+                loader = PyMuPDFLoader(file_path)
                 documents.extend(loader.load())
         return documents
+
+    # def chunk(
+    #     self,
+    #     documents: list,
+    #     embeddings: Optional[Embeddings] = None,
+    # ):
+    #     """
+    #     Split documents for retrieval: semantic boundaries first, then fixed-size windows.
+
+    #     Pass the same ``Embeddings`` as used for FAISS so chunk boundaries align with search.
+    #     If omitted, a new ``HuggingFaceEmbeddings`` is created (extra model load).
+    #     """
+    #     if embeddings is None:
+    #         embeddings = HuggingFaceEmbeddings(model_name=settings.EMBEDDING_MODEL)
+
+    #     semantic_text_splitter = SemanticChunker(embeddings)
+    #     semantic_chunks = semantic_text_splitter.split_documents(documents)
+
+    #     final_chunks = RecursiveCharacterTextSplitter(
+    #         chunk_size=settings.CHUNK_SIZE,
+    #         chunk_overlap=settings.CHUNK_OVERLAP,
+    #         separators=["\n\n", "\n", " ", ""],
+    #     ).split_documents(semantic_chunks)
+
+    #     return final_chunks
 
     def chunk(
         self,
         documents: list,
         embeddings: Optional[Embeddings] = None,
     ):
-        """
-        Split documents for retrieval: semantic boundaries first, then fixed-size windows.
-
-        Pass the same ``Embeddings`` as used for FAISS so chunk boundaries align with search.
-        If omitted, a new ``HuggingFaceEmbeddings`` is created (extra model load).
-        """
-        if embeddings is None:
-            embeddings = HuggingFaceEmbeddings(model_name=settings.EMBEDDING_MODEL)
-
-        semantic_text_splitter = SemanticChunker(embeddings)
-        semantic_chunks = semantic_text_splitter.split_documents(documents)
-
-        final_chunks = RecursiveCharacterTextSplitter(
+        return RecursiveCharacterTextSplitter(
             chunk_size=settings.CHUNK_SIZE,
             chunk_overlap=settings.CHUNK_OVERLAP,
             separators=["\n\n", "\n", " ", ""],
-        ).split_documents(semantic_chunks)
-
-        return final_chunks
+        ).split_documents(documents)
 
     def save_chunks(self, chunks: list, path: str = "data/chunks.json") -> None:
         """
