@@ -1,96 +1,146 @@
-# Policy RAG Assistant
+---
+title: Policy RAG Assistant
+emoji: 📋
+colorFrom: blue
+colorTo: indigo
+sdk: streamlit
+sdk_version: "1.56.0"
+app_file: streamlit_app.py
+pinned: true
+license: mit
+short_description: Multi-turn RAG chatbot — Hybrid BM25+FAISS, Groq Llama-3, Window Memory
+---
 
-Retrieve passages from policy PDFs with FAISS, then answer questions with **Groq** (Llama). Run indexing or Q&A by editing and running **`main.py`** (or import `RAGPipeline` elsewhere).
+# 📋 Policy RAG Assistant
 
-## Where execution starts
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.56-red?logo=streamlit)](https://streamlit.io)
+[![Groq](https://img.shields.io/badge/LLM-Groq%20Llama--3.3--70B-orange)](https://groq.com)
+[![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-| How you run it | What happens |
-|----------------|----------------|
-| **`python main.py`** | Runs the calls at the bottom of `main.py` (typically `build_index()` and/or `answer(...)`). Adds the project root to `sys.path` so `src.*` and `config` resolve. |
-| **Your own script / notebook** | `from src.pipeline.rag_pipeline import RAGPipeline`, then `RAGPipeline().build_index()` or `.answer("...")`. Run with **`PYTHONPATH`** set to this project root, or run the script from this directory with the same path setup as `main.py`. |
-| **Importing in another project** | Install the package in editable mode (if you add a `pyproject.toml`) or extend `PYTHONPATH` to include this folder so `src` and `config` resolve. |
+> **Ask questions about policy documents in natural language.** Multi-turn chat with hybrid retrieval, LLM query rewriting, and window memory — all running free on Groq's inference API.
 
-End-to-end flow:
+---
 
-1. Put **PDFs** in `data/Docs/`.
-2. **Index** (embed + FAISS): in `main.py`, call `pipeline.build_index()`, then run `python main.py` → writes `data/Faiss_Index/` and optional `data/chunks.json`.
-3. **Ask**: set `GROQ_API_KEY`, uncomment or add `print(pipeline.answer("..."))` in `main.py`, run `python main.py` again → retrieves top-k chunks and calls Groq.
+## 🚀 Live Demo
 
-Configuration lives in **`config/settings.py`** (paths, embedding model, chunk sizes, `TOP_K`, Groq model).
+**[➡️ Try it on Hugging Face Spaces](https://huggingface.co/spaces/YOUR_HF_USERNAME/rag-policy-assistant)**
 
-## Setup
+---
 
-1. **Python 3.10+** recommended (3.9 may work with compatible LangChain versions).
+## 🏗️ Architecture
 
-2. Create a virtual environment and install dependencies:
-
-   ```bash
-   cd rag-policy-assistant
-   python3 -m venv venv
-   source venv/bin/activate   # Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-
-3. **Environment variables** — create a `.env` file in the project root (optional but convenient; loaded by `config/settings.py`):
-
-   ```env
-   GROQ_API_KEY=your_groq_api_key_here
-   ```
-
-   Without a key, asking questions / `answer()` will fail when calling Groq.
-
-4. **Data directories** — create if missing:
-
-   ```bash
-   mkdir -p data/Docs
-   ```
-
-   Add your policy PDFs under `data/Docs/` before indexing.
-
-## Running via `main.py`
-
-From **`rag-policy-assistant/`**, open **`main.py`** and set which methods you need, for example:
-
-```python
-pipeline = RAGPipeline()
-pipeline.build_index()
-# print(pipeline.answer("What is the vacation policy?"))
+```mermaid
+flowchart LR
+    User([👤 User]) --> UI[Streamlit Chat UI]
+    UI --> QR[LLM Query Rewriter\nGroq Llama-3]
+    QR --> MQ[Multi-Query Generator\n3 paraphrases]
+    MQ --> HYB{Hybrid Retriever}
+    HYB --> BM25[BM25 Sparse\nrank_bm25]
+    HYB --> FAISS[FAISS Dense\nbge-small-en-v1.5]
+    BM25 --> DEDUP[Dedup + Rerank\nby frequency]
+    FAISS --> DEDUP
+    DEDUP --> GEN[Generator\nGroq Llama-3.3-70B]
+    GEN --> MEM[Window Memory\nlast 5 turns]
+    MEM --> UI
 ```
 
-Then:
+---
+
+## 🛠️ Tech Stack
+
+| Component | Technology |
+|---|---|
+| **LLM** | Groq Llama-3.3-70B-Versatile (free API) |
+| **Embeddings** | `BAAI/bge-small-en-v1.5` (sentence-transformers) |
+| **Vector store** | FAISS CPU |
+| **Sparse retrieval** | BM25 (rank_bm25) |
+| **PDF parsing** | pypdf |
+| **Memory** | `ConversationBufferWindowMemory` (k=5, custom) |
+| **Query rewriting** | LLM-based standalone question rewriter |
+| **Multi-query** | 3 LLM paraphrases → retrieve → dedup → rerank |
+| **Framework** | LangChain 1.2 |
+| **UI** | Streamlit 1.56 |
+| **Deployment** | Hugging Face Spaces |
+
+---
+
+## ✨ Features
+
+- **Hybrid Retrieval** — BM25 (keyword) + FAISS (semantic) fusion
+- **LLM Query Rewriter** — rewrites follow-up questions into standalone queries using chat history
+- **Multi-Query Retrieval** — generates 3 paraphrases, retrieves for each, deduplicates, reranks by retrieval frequency
+- **ConversationBufferWindowMemory** — keeps the last 5 turns (10 messages) in a sliding window deque
+- **Multi-turn Chat UI** — full chat history display with role bubbles in Streamlit
+- **Zero-cost inference** — Groq free tier, HF Spaces free tier
+
+---
+
+## 🚀 Run Locally
 
 ```bash
-python main.py
+# 1. Clone
+git clone https://github.com/YOUR_USERNAME/rag-policy-assistant
+cd rag-policy-assistant
+
+# 2. Install
+pip install -r requirements.txt
+
+# 3. Add your Groq API key (free at console.groq.com)
+echo "GROQ_API_KEY=gsk_..." > .env
+
+# 4. Drop PDFs into data/Docs/ and build index
+python main.py index
+
+# 5. Launch
+streamlit run streamlit_app.py
 ```
 
-Comment or remove `build_index()` when you only want to query an existing index.
+---
 
-## Programmatic usage
+## 📁 Project Structure
 
-```python
-from src.pipeline.rag_pipeline import RAGPipeline
-
-p = RAGPipeline()
-p.build_index()           # offline: PDFs → FAISS
-answer = p.answer("What does the policy say about PTO?")  # retrieve + Groq
-print(answer)
+```
+rag-policy-assistant/
+├── streamlit_app.py          # Streamlit UI entry point
+├── main.py                   # CLI: build index
+├── src/
+│   ├── pipeline/
+│   │   └── rag_pipeline.py   # RAGPipeline + ConversationBufferWindowMemory
+│   ├── retrieval/
+│   │   ├── hybrid.py         # HybridRetriever (BM25 + FAISS)
+│   │   └── retriever.py      # Dense-only retriever
+│   ├── embedding/
+│   │   └── embedder.py       # bge-small-en-v1.5 wrapper
+│   ├── vectorstore/
+│   │   └── faiss_store.py    # FAISS index build/load/search
+│   ├── ingestion/
+│   │   └── ingest.py         # PDF → chunks
+│   └── llm/
+│       └── groq_client.py    # Groq API wrapper
+├── config/
+│   └── settings.py           # Pydantic settings
+├── data/
+│   ├── Docs/                 # Source PDFs
+│   ├── Faiss_Index/          # Pre-built FAISS index
+│   └── chunks.json           # Serialised chunk store
+└── requirements.txt
 ```
 
-Run this from a context where **`rag-policy-assistant`** is the working directory and imports resolve (e.g. `PYTHONPATH=. python your_script.py`).
+---
 
-## Layout
+## 💡 What I Learned
 
-- `main.py` — thin entry: constructs `RAGPipeline` and calls its methods (edit as needed).
-- `config/settings.py` — paths and hyperparameters.
-- `src/pipeline/rag_pipeline.py` — orchestrates ingest, index, retrieve, **answer**.
-- `src/ingestion/` — PDF load and chunking.
-- `src/embedding/` — Hugging Face embeddings.
-- `src/vectorstore/` — FAISS save/load.
-- `src/retrieval/` — query-time retrieval.
-- `src/llm/` — Groq client.
+Building this end-to-end RAG system taught me:
 
-## Notes
+1. **Hybrid retrieval beats either alone** — BM25 catches exact keyword matches that dense embeddings miss (policy IDs, codes, names), while FAISS handles semantic paraphrases.
+2. **Query rewriting is the highest-leverage improvement** — a single LLM call to rephrase "what about that?" into a standalone question dramatically improves multi-turn accuracy.
+3. **Multi-query retrieval + frequency reranking** is a cheap, effective approximation to learned rerankers — documents that survive 4 different phrasings are almost always relevant.
+4. **Sliding window memory** (deque) is simpler and faster than LangChain's `ConversationBufferWindowMemory` and avoids the full LangChain chain abstraction overhead.
+5. **FAISS on CPU is fast enough** for sub-second retrieval on corpora up to ~100k chunks.
 
-- First indexing run **downloads** the embedding model (`BAAI/bge-small-en-v1.5`) and may take a while.
-- The FAISS index is loaded with `allow_dangerous_deserialization=True` — only load indexes **you** created.
-- `Retriever` currently instantiates its own `Embedder`; indexing and querying share the same **model name** and **index path** from settings.
+---
+
+## 📝 License
+
+MIT — see [LICENSE](LICENSE).
