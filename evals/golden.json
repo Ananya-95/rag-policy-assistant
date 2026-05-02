@@ -1,0 +1,227 @@
+[
+  {
+    "id": "q01",
+    "question": "What is RAASB and when was it established?",
+    "ideal_answer": "RAASB (Research Analysts Administration and Supervisory Body) is the body designated to administer and supervise Research Analysts. It was established for a period of five years starting from July 25, 2024, along with IAASB (Investment Advisers Administration and Supervisory Body).",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 22,
+    "category": "factual",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q02",
+    "question": "Which NISM certification examination must a Research Analyst pass?",
+    "ideal_answer": "A Research Analyst must pass the NISM-Series-XV: Research Analyst Certification Examination. There is also NISM-Series-XV-B as an alternative or additional examination.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 13,
+    "category": "factual",
+    "difficulty": "easy"
+  },
+  {
+    "id": "q03",
+    "question": "Can an Investment Adviser registered under SEBI (IA) Regulations 2013 also register as a Research Analyst?",
+    "ideal_answer": "Yes. An investment adviser who is an individual or partnership firm registered under SEBI (Investment Advisers) Regulations, 2013 (IA Regulations) may be considered eligible for grant of a certificate of registration as a Research Analyst under the RA Regulations, provided it complies with the applicable conditions.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 7,
+    "category": "eligibility",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q04",
+    "question": "What are the two activities a Research Analyst is prohibited from engaging in when applying for part-time RA registration?",
+    "ideal_answer": "A person applying for part-time RA registration is prohibited from: (a) providing advice or any recommendation, directly or indirectly, with or otherwise permitted by SEBI; and (b) making any such claim that SEBI has permitted them to provide such advice or recommendation.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 9,
+    "category": "prohibition",
+    "difficulty": "hard"
+  },
+  {
+    "id": "q05",
+    "question": "What does an employee need to provide from their employer when applying to become a Research Analyst?",
+    "ideal_answer": "An employee must provide a no-objection certificate from their employer. If they change employment, they must obtain a new objection certificate from their new employer to submit to RAASB/SEBI to continue their RA registration.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 10,
+    "category": "compliance",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q06",
+    "question": "How often can RAASB revise the fee limit for Research Analysts?",
+    "ideal_answer": "The fee limit for Research Analysts shall be revised and announced by RAASB once in three years.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 13,
+    "category": "fees",
+    "difficulty": "easy"
+  },
+  {
+    "id": "q07",
+    "question": "For what types of clients does the one-year advance fee restriction not apply?",
+    "ideal_answer": "The one-year advance fee restriction does not apply in the case of non-individual clients and accredited investors. For these clients, advance fees may be collected beyond one year.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 13,
+    "category": "fees",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q08",
+    "question": "Who is not eligible to register as a part-time Research Analyst?",
+    "ideal_answer": "A person who provides advice or recommendations on assets such as gold, real estate, or cryptocurrency shall not be considered eligible for registration as a part-time Research Analyst.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 9,
+    "category": "eligibility",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q09",
+    "question": "What does NISM-Series-III A certify?",
+    "ideal_answer": "NISM-Series-III A certifies Securities Intermediaries Compliance (Non-Fund). This examination is relevant for compliance officers in the securities intermediary space.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 13,
+    "category": "certification",
+    "difficulty": "easy"
+  },
+  {
+    "id": "q10",
+    "question": "What does the SEBI Master Circular say about the responsibilities of RAASB for formulating operational guidelines?",
+    "ideal_answer": "RAASB is responsible for the formulation of bye-laws, SOPs (Standard Operating Procedures), and FAQs. BSE shall also formulate bye-laws with respect to its activities as RAASB. RAs and IAs are required to adopt the RAASB and IAASB framework smoothly.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 22,
+    "category": "administration",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q11",
+    "question": "What circular covered relaxation of geo-tagging requirements for NRIs during re-KYC?",
+    "ideal_answer": "Circular HO/38/30/12(1)2025-MIRSD-SEC-FATF dated 10-Dec-25 covers the relaxation on geo-tagging requirements in India for NRIs (Non-Resident Indians) while undertaking re-KYC.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 44,
+    "category": "KYC",
+    "difficulty": "hard"
+  },
+  {
+    "id": "q12",
+    "question": "What SEBI circular covers clarification on Digital Accessibility?",
+    "ideal_answer": "Circular ITD-1_VIAP/I/187/2025 dated 08-Dec-25 provides clarification on the Digital Accessibility circulars of SEBI.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 47,
+    "category": "accessibility",
+    "difficulty": "hard"
+  },
+  {
+    "id": "q13",
+    "question": "What are the administrative fees payable by Research Analysts?",
+    "ideal_answer": "Research Analysts are required to pay administrative fees to RAASB/IAASB as specified. These administrative fees are also payable to SEBI and RAASB upon renewal of registration.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 22,
+    "category": "fees",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q14",
+    "question": "How does SEBI define 'group' and 'family' for an individual Research Analyst?",
+    "ideal_answer": "For an individual Research Analyst, 'group' and 'family' are defined as per Regulation 26C(3)(iii) and the associated Regulation referenced therein within the RA Regulations.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 13,
+    "category": "definitions",
+    "difficulty": "hard"
+  },
+  {
+    "id": "q15",
+    "question": "What provisions apply to non-individual clients under the Research Analyst fee framework?",
+    "ideal_answer": "In the case of non-individual clients and accredited investors, the advance fee restriction of one year shall not be applicable. These clients may be charged advance fees beyond the one-year cap that applies to individual and HUF clients.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 13,
+    "category": "fees",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q16",
+    "question": "What is IAASB and what is its relationship with RAASB?",
+    "ideal_answer": "IAASB stands for Investment Advisers Administration and Supervisory Body. It is the counterpart of RAASB for Investment Advisers, just as RAASB supervises Research Analysts. Both RAASB and IAASB were established for a five-year period from July 25, 2024. RAs and IAs are required to smoothly adopt the RAASB and IAASB framework respectively.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 22,
+    "category": "administration",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q17",
+    "question": "What does the Master Circular say about data provided by Indian securities market sources?",
+    "ideal_answer": "Research Analysts are advised to make note that data provided by various data sources in Indian securities markets pursuant to regulatory mandates for reporting and disclosure in the public domain should be made available to users free of charge, both for viewing and also for downloading.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 42,
+    "category": "data",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q18",
+    "question": "What does SEBI require in terms of Know Your Client (KYC) obligations?",
+    "ideal_answer": "SEBI requires Research Analysts to comply with Know Your Client (KYC) requirements as specified in its circulars. This includes processes for client identification and verification. The Master Circular also contains provisions for relaxation of specific KYC requirements, such as geo-tagging relaxation for NRIs undergoing re-KYC.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 44,
+    "category": "KYC",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q19",
+    "question": "What regulation governs shareholding pattern disclosures and how does it relate to the Master Circular?",
+    "ideal_answer": "Regulation 4(2)(a) of the Securities and Exchange Board of India (Listing Obligations) and associated regulations cover fundamental corporate changes including shareholding pattern disclosures. The circular references shareholding patterns involving details of shareholders holding 10% or more.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 20,
+    "category": "disclosure",
+    "difficulty": "hard"
+  },
+  {
+    "id": "q20",
+    "question": "What type of document is 1770375507051.pdf and what topics does it cover?",
+    "ideal_answer": "The document is a SEBI Master Circular that covers guidelines for Research Analysts and Procedural Guidelines for Proxy Advisors. It covers registration requirements, eligibility criteria, prohibited activities, fee structures, KYC obligations, the establishment of RAASB/IAASB, data accessibility, digital accessibility, and various SEBI circulars on compliance topics.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 1,
+    "category": "overview",
+    "difficulty": "easy"
+  },
+  {
+    "id": "q21",
+    "question": "What body is responsible for administering Research Analysts under SEBI regulations from July 2024?",
+    "ideal_answer": "RAASB (Research Analysts Administration and Supervisory Body) is responsible for administering and supervising Research Analysts. BSE (Bombay Stock Exchange) acts in the capacity of RAASB, and the framework was established for five years starting July 25, 2024.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 22,
+    "category": "administration",
+    "difficulty": "easy"
+  },
+  {
+    "id": "q22",
+    "question": "What is the compliance certification requirement for Research Analyst compliance officers?",
+    "ideal_answer": "A compliance officer who holds certifications by passing the NISM-Series-III A: Securities Intermediaries Compliance (Non-Fund) examination meets the compliance certification requirement for a Research Analyst entity.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 13,
+    "category": "certification",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q23",
+    "question": "Does the advance fee cap of one year apply to accredited investors?",
+    "ideal_answer": "No. The provisions restricting advance fees to a period of one year for individual and HUF clients shall not be applicable in the case of non-individual clients and accredited investors. These clients can be charged advance fees for periods exceeding one year.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 13,
+    "category": "fees",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q24",
+    "question": "What must a Research Analyst employee do if they change their employer?",
+    "ideal_answer": "If a Research Analyst who is an employee changes their employer, they must obtain a no-objection certificate (objection certificate) from their new employer and submit it to RAASB/SEBI to continue their RA registration and activities.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 10,
+    "category": "compliance",
+    "difficulty": "medium"
+  },
+  {
+    "id": "q25",
+    "question": "What are 'Procedural Guidelines for Proxy Advisors' in the context of this SEBI Master Circular?",
+    "ideal_answer": "The Procedural Guidelines for Proxy Advisors constitute a distinct section of the SEBI Master Circular covering regulations applicable to Proxy Advisors, who provide recommendations to institutional investors and others on how to vote on resolutions at shareholder meetings. These guidelines set out administration, supervision, and compliance requirements for Proxy Advisors under SEBI regulations.",
+    "ground_truth_source": "data/Docs/1770375507051.pdf",
+    "ground_truth_page": 2,
+    "category": "proxy_advisors",
+    "difficulty": "medium"
+  }
+]
