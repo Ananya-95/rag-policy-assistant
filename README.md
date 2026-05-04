@@ -8,7 +8,7 @@ sdk_version: "1.56.0"
 app_file: streamlit_app.py
 pinned: true
 license: mit
-short_description: Multi-turn RAG chatbot — Hybrid BM25+FAISS, Groq Llama-3, Window Memory
+short_description: RAG chatbot — BM25+FAISS, Groq, Memory
 ---
 
 # 📋 Policy RAG Assistant
