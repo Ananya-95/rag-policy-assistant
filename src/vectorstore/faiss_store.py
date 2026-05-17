@@ -39,6 +39,18 @@ class FAISSStore:
         )
         return self.index
 
+    def build(self, chunks: list) -> FAISS:
+        """Create index from chunks and persist to ``settings.FAISS_INDEX_PATH``."""
+        self.create_index(chunks)
+        self.save_index()
+        return self.index
+
+    def search(self, query: str, k: int | None = None) -> list:
+        """Similarity search; loads from disk if needed."""
+        if self.index is None:
+            self.load_index()
+        return self.index.similarity_search(query, k=k or settings.TOP_K)
+
     def get_retriever(self):
         """
         LangChain retriever for similarity search; loads from disk if ``create_index`` was not run this session.

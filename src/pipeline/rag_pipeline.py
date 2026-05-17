@@ -81,14 +81,24 @@ class RAGPipeline:
     # Index management
     # ------------------------------------------------------------------
 
-    def build_index(self, pdf_dir: str = "data/Docs") -> None:
-        chunks = self.ingester.ingest(pdf_dir)
+    def build_index(self, pdf_dir: str | None = None) -> int:
+        """Load PDFs → chunk → save FAISS index + chunks.json."""
+        if pdf_dir:
+            self.ingester = PDFIngester(data_path=pdf_dir)
+        documents = self.ingester.ingest()
+        if not documents:
+            raise ValueError(
+                f"No PDFs found in {self.ingester.data_path}. Add policy PDFs first."
+            )
+        chunks = self.ingester.chunk(documents, embeddings=self.embedder.get_model())
+        self.ingester.save_chunks(chunks)
         self.faiss_store.build(chunks)
         if self.use_hybrid:
             self._retriever = HybridRetriever(chunks)
         else:
             self._retriever = Retriever()
         logger.info("Index built (%d chunks)", len(chunks))
+        return len(chunks)
 
     def _try_load_retriever(self) -> None:
         import os
