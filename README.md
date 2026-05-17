@@ -24,7 +24,7 @@ short_description: RAG chatbot — BM25+FAISS, Groq, Memory
 
 ## 🚀 Live Demo
 
-**[➡️ Try it on Hugging Face Spaces](https://huggingface.co/spaces/YOUR_HF_USERNAME/rag-policy-assistant)**
+**[➡️ Live demo on Hugging Face Spaces](https://huggingface.co/spaces/Ananya95/rag-policy-assistant)** · **[App URL](https://ananya95-rag-policy-assistant.hf.space)**
 
 ---
 
@@ -76,11 +76,23 @@ flowchart LR
 
 ---
 
+## ☁️ Deploy on Hugging Face Spaces
+
+1. Create a Space: **Streamlit** SDK, link this repo.
+2. In Space **Settings → Repository secrets**, add `GROQ_API_KEY`.
+3. Optional: `COHERE_API_KEY` for reranking.
+4. Ensure Git LFS files (`data/Faiss_Index/*`) are pulled on build.
+5. App URL: https://ananya95-rag-policy-assistant.hf.space
+
+If the build fails, check logs for missing deps — `requirements.txt` includes `langchain-community` and `pymupdf`.
+
+---
+
 ## 🚀 Run Locally
 
 ```bash
 # 1. Clone
-git clone https://github.com/YOUR_USERNAME/rag-policy-assistant
+git clone https://github.com/Ananya-95/rag-policy-assistant.git
 cd rag-policy-assistant
 
 # 2. Install
@@ -103,7 +115,8 @@ streamlit run streamlit_app.py
 ```
 rag-policy-assistant/
 ├── streamlit_app.py          # Streamlit UI entry point
-├── main.py                   # CLI: build index
+├── ingest.py                 # Standalone: build FAISS index from PDFs
+├── main.py                   # CLI: index | ask
 ├── src/
 │   ├── pipeline/
 │   │   └── rag_pipeline.py   # RAGPipeline + ConversationBufferWindowMemory
@@ -124,7 +137,31 @@ rag-policy-assistant/
 │   ├── Docs/                 # Source PDFs
 │   ├── Faiss_Index/          # Pre-built FAISS index
 │   └── chunks.json           # Serialised chunk store
+├── evals/
+│   ├── golden.json           # 25 Q&A pairs for RAGAS
+│   ├── manual_run.md         # 10-question manual eval log
+│   ├── hybrid_vs_dense.md    # A/B retrieval notes
+│   └── run_eval.py           # Automated dense vs hybrid eval
+├── tests/
+│   └── test_retriever.py     # Unit tests for retrieval
+├── PLAN.md                   # Week 2 roadmap
 └── requirements.txt
+```
+
+---
+
+## 📊 Evaluation
+
+```bash
+# Manual smoke test (needs GROQ_API_KEY)
+python main.py ask "What is RAASB?"
+
+# A/B dense vs hybrid on golden set (first 10 questions)
+python evals/run_eval.py --mode dense --limit 10 -o evals/dense_results.json
+python evals/run_eval.py --mode hybrid --limit 10 -o evals/hybrid_results.json
+
+# RAGAS metrics (optional; needs GROQ_API_KEY)
+python evals/run_eval.py --mode hybrid --limit 5 --ragas
 ```
 
 ---
