@@ -1,18 +1,36 @@
 from __future__ import annotations
+
 import logging
+import os
 from collections import deque
-from typing import List, Optional, Union, Any
+from dataclasses import dataclass, field
+from typing import List, Optional, Union
 
 from langchain.schema import Document
-from src.ingestion.ingest import PDFIngester
-from src.embedding.embedder import Embedder
-from src.vectorstore.faiss_store import FAISSStore
-from src.retrieval.retriever import Retriever
-from src.retrieval.hybrid import HybridRetriever
-from src.llm.groq_client import GroqClient
+
 from config.settings import settings
+from src.embedding.embedder import Embedder
+from src.ingestion.ingest import PDFIngester
+from src.llm.groq_client import GroqClient
+from src.retrieval.hybrid import HybridRetriever
+from src.retrieval.retriever import Retriever
+from src.vectorstore.faiss_store import FAISSStore
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class SourceCitation:
+    filename: str
+    page: Optional[int]
+    snippet: str
+
+
+@dataclass
+class RAGResponse:
+    answer: str
+    sources: List[SourceCitation] = field(default_factory=list)
+
 
 # ---------------------------------------------------------------------------
 # ConversationBufferWindowMemory  (last k turns = 2*k messages)
@@ -23,24 +41,21 @@ class ConversationBufferWindowMemory:
 
     def __init__(self, k: int = 5) -> None:
         self.k = k
-        # Each element: {"role": "user"|"assistant", "content": str}
-        self._buffer: deque = deque(maxlen=k * 2)
-
-    # -- public interface ---------------------------------------------------
+        self._buffer: deque = deque(maxlen=max(k * 2, 0))
 
     def save_context(self, human: str, ai: str) -> None:
+        if self.k <= 0:
+            return
         self._buffer.append({"role": "user", "content": human})
         self._buffer.append({"role": "assistant", "content": ai})
 
     def load_memory(self) -> List[dict]:
-        """Return a plain list copy (chronological order)."""
         return list(self._buffer)
 
     def clear(self) -> None:
         self._buffer.clear()
 
     def as_text(self) -> str:
-        """Compact text representation for prompt injection."""
         lines = []
         for msg in self._buffer:
             role = "Human" if msg["role"] == "user" else "Assistant"
@@ -49,6 +64,9 @@ class ConversationBufferWindowMemory:
 
     def __len__(self) -> int:
         return len(self._buffer)
+
+    def __bool__(self) -> bool:
+        return len(self._buffer) > 0
 
 
 # ---------------------------------------------------------------------------
@@ -70,10 +88,7 @@ class RAGPipeline:
         self.llm_client = GroqClient()
         self.use_hybrid = use_hybrid
         self.use_query_rewrite = use_query_rewrite
-
-        # ConversationBufferWindowMemory – last `memory_k` turns
         self.memory = ConversationBufferWindowMemory(k=memory_k)
-
         self._retriever: Optional[Union[Retriever, HybridRetriever]] = None
         self._try_load_retriever()
 
@@ -82,26 +97,30 @@ class RAGPipeline:
     # ------------------------------------------------------------------
 
     def build_index(self, pdf_dir: str | None = None) -> int:
-        """Load PDFs → chunk → save FAISS index + chunks.json."""
+        """Load PDFs → chunk → save FAISS index + chunks.json. Returns chunk count."""
         if pdf_dir:
             self.ingester = PDFIngester(data_path=pdf_dir)
+
         documents = self.ingester.ingest()
         if not documents:
             raise ValueError(
-                f"No PDFs found in {self.ingester.data_path}. Add policy PDFs first."
+                f"No PDFs found in {self.ingester.data_path}. "
+                "Add policy PDFs and run again."
             )
+
         chunks = self.ingester.chunk(documents, embeddings=self.embedder.get_model())
         self.ingester.save_chunks(chunks)
         self.faiss_store.build(chunks)
+
         if self.use_hybrid:
             self._retriever = HybridRetriever(chunks)
         else:
             self._retriever = Retriever()
-        logger.info("Index built (%d chunks)", len(chunks))
+
+        logger.info("Index built (%d chunks from %d pages)", len(chunks), len(documents))
         return len(chunks)
 
     def _try_load_retriever(self) -> None:
-        import os
         if os.path.exists(settings.FAISS_INDEX_PATH):
             try:
                 self.faiss_store.load_index()
@@ -117,16 +136,16 @@ class RAGPipeline:
             except Exception as exc:
                 logger.warning("Could not load existing index: %s", exc)
 
-    def _load_chunks_from_json(self):
-        import json, os
-        from langchain.schema import Document as LCDoc
+    def _load_chunks_from_json(self) -> List[Document]:
+        import json
+
         path = "data/chunks.json"
         if not os.path.exists(path):
             return []
         with open(path, encoding="utf-8") as f:
             raw = json.load(f)
         return [
-            LCDoc(page_content=c.get("page_content", ""), metadata=c.get("metadata", {}))
+            Document(page_content=c.get("page_content", ""), metadata=c.get("metadata", {}))
             for c in raw
         ]
 
@@ -134,14 +153,29 @@ class RAGPipeline:
     # Helpers
     # ------------------------------------------------------------------
 
-    def _format_docs(self, docs) -> str:
-        if docs is None:
-            return ""
-        items = docs if isinstance(docs, list) else [docs]
+    @staticmethod
+    def _doc_to_citation(doc: Document) -> SourceCitation:
+        meta = getattr(doc, "metadata", None) or {}
+        source = meta.get("source") or meta.get("file_path") or "unknown"
+        filename = os.path.basename(str(source))
+        page = meta.get("page")
+        if page is None:
+            page = meta.get("page_number")
+        if page is not None:
+            try:
+                page = int(page) + 1  # PyMuPDF uses 0-based pages
+            except (TypeError, ValueError):
+                pass
+        text = getattr(doc, "page_content", "") or ""
+        snippet = text[:400] + ("…" if len(text) > 400 else "")
+        return SourceCitation(filename=filename, page=page, snippet=snippet)
+
+    def _format_docs(self, docs: List[Document]) -> str:
         parts = []
-        for i, doc in enumerate(items, start=1):
-            text = getattr(doc, "page_content", None) or str(doc)
-            parts.append(f"[{i}] {text}")
+        for i, doc in enumerate(docs, start=1):
+            cite = self._doc_to_citation(doc)
+            page_str = f", p.{cite.page}" if cite.page is not None else ""
+            parts.append(f"[{i}] ({cite.filename}{page_str})\n{cite.snippet}")
         return "\n\n".join(parts)
 
     # ------------------------------------------------------------------
@@ -149,7 +183,6 @@ class RAGPipeline:
     # ------------------------------------------------------------------
 
     def _rewrite_query(self, question: str) -> str:
-        """Rewrite a follow-up question into a standalone query using chat history."""
         if not self.memory:
             return question
 
@@ -178,7 +211,6 @@ class RAGPipeline:
     # ------------------------------------------------------------------
 
     def _generate_paraphrases(self, question: str) -> List[str]:
-        """Ask the LLM for 3 paraphrases of the query."""
         prompt = (
             "Generate 3 different paraphrases of the following search query. "
             "Each paraphrase should capture the same information need but use different wording. "
@@ -187,22 +219,21 @@ class RAGPipeline:
         )
         try:
             raw = self.llm_client.invoke(prompt).strip()
-            paraphrases = [p.strip() for p in raw.splitlines() if p.strip()][:3]
-            logger.info("Generated %d paraphrases", len(paraphrases))
-            return paraphrases
+            return [p.strip() for p in raw.splitlines() if p.strip()][:3]
         except Exception as exc:
             logger.warning("Paraphrase generation failed: %s", exc)
             return []
 
     def _multi_query_retrieve(self, question: str, k: int = 4) -> List[Document]:
-        """Retrieve for original + paraphrases, deduplicate, rerank by frequency."""
         queries = [question] + self._generate_paraphrases(question)
-        seen_content: dict = {}   # page_content -> (doc, freq)
+        seen_content: dict = {}
 
         for q in queries:
             try:
                 if self.use_hybrid and isinstance(self._retriever, HybridRetriever):
-                    docs = self._retriever.retrieve(q, k=k)
+                    docs = self._retriever.retrieve(q, top_k=k)
+                elif self._retriever is not None:
+                    docs = self._retriever.retrieve(q)
                 else:
                     docs = self.faiss_store.search(q, k=k)
             except Exception as exc:
@@ -216,67 +247,54 @@ class RAGPipeline:
                 else:
                     seen_content[key] = (doc, 1)
 
-        # Rerank: sort by frequency descending, take top k*2 unique docs
         reranked = sorted(seen_content.values(), key=lambda x: x[1], reverse=True)
-        top_docs = [doc for doc, _ in reranked[: k * 2]]
-        logger.info(
-            "Multi-query: %d queries -> %d unique docs (top %d kept)",
-            len(queries),
-            len(seen_content),
-            len(top_docs),
-        )
-        return top_docs
+        return [doc for doc, _ in reranked[: k * 2]]
 
     # ------------------------------------------------------------------
     # Main answer method
     # ------------------------------------------------------------------
 
-    def answer(self, question: str) -> str:
-        # 1. Ensure retriever is available
+    def answer(self, question: str, *, store_memory: bool = True) -> RAGResponse:
         if self._retriever is None:
-            return "No index loaded. Run `python main.py index` first."
+            return RAGResponse(
+                answer="No index loaded. Run `python main.py index` first.",
+                sources=[],
+            )
 
-        # 2. Rewrite query using conversation history
-        if self.use_query_rewrite:
-            standalone = self._rewrite_query(question)
-        else:
-            standalone = question
+        standalone = (
+            self._rewrite_query(question)
+            if self.use_query_rewrite
+            else question
+        )
 
-        # 3. Multi-query retrieval with dedup + rerank
         docs = self._multi_query_retrieve(standalone, k=4)
+        sources = [self._doc_to_citation(d) for d in docs]
         context = self._format_docs(docs)
 
-        # 4. Build generation prompt with windowed memory
         history_text = self.memory.as_text()
         history_section = (
             f"\nConversation history:\n{history_text}\n" if history_text else ""
         )
         prompt = (
             "You are a helpful policy assistant. Answer the question based ONLY on the "
-            "provided context. If the answer is not in the context, say you do not have "
-            "enough information.\n"
+            "provided context. Cite sources inline using the format [filename, p.N] "
+            "when you use a passage. If the answer is not in the context, say you do not "
+            "have enough information — do not guess.\n"
             f"{history_section}"
             f"\nContext:\n{context}\n\n"
             f"Question: {question}\n\n"
             "Answer:"
         )
 
-        # 5. Generate
         reply = self.llm_client.invoke(prompt)
 
-        # 6. Store in window memory
-        self.memory.save_context(question, reply)
+        if store_memory:
+            self.memory.save_context(question, reply)
 
-        return reply
-
-    # ------------------------------------------------------------------
-    # Public helpers for Streamlit
-    # ------------------------------------------------------------------
+        return RAGResponse(answer=reply, sources=sources)
 
     def get_history(self) -> List[dict]:
-        """Return current window memory as a list of message dicts."""
         return self.memory.load_memory()
 
     def clear_history(self) -> None:
-        """Reset the conversation window."""
         self.memory.clear()
