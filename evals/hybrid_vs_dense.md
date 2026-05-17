@@ -1,6 +1,6 @@
 # A/B Eval: Hybrid vs Dense Retrieval
 
-**Date:** 2026-05-02  
+**Date:** 2026-05-17  
 **Model:** llama-3.3-70b-versatile (Groq)  
 **Embeddings:** BAAI/bge-small-en-v1.5  
 **Dense baseline:** FAISS top-5  
@@ -11,20 +11,20 @@
 ## Results
 
 | # | Question | Dense Answer (summary) | Hybrid Answer (summary) | Improved? | Notes |
-|---|----------|----------------------|------------------------|-----------|-------|
-| 1 | | | | ⬜ TBD | |
-| 2 | | | | ⬜ TBD | |
-| 3 | | | | ⬜ TBD | |
-| 4 | | | | ⬜ TBD | |
-| 5 | | | | ⬜ TBD | |
-| 6 | | | | ⬜ TBD | |
-| 7 | | | | ⬜ TBD | |
-| 8 | | | | ⬜ TBD | |
-| 9 | | | | ⬜ TBD | |
-| 10 | | | | ⬜ TBD | |
+|---|----------|------------------------|-------------------------|-----------|-------|
+| 1 | What is RAASB and when was it established? | _run eval_ | _run eval_ | ⬜ TBD | |
+| 2 | Which NISM certification examination must a Research Analyst pass? | _run eval_ | _run eval_ | ⬜ TBD | |
+| 3 | Can an Investment Adviser also register as a Research Analyst? | _run eval_ | _run eval_ | ⬜ TBD | |
+| 4 | Part-time RA prohibited activities (two)? | _run eval_ | _run eval_ | ⬜ TBD | |
+| 5 | Employee employer letter requirement? | _run eval_ | _run eval_ | ⬜ TBD | |
+| 6 | Minimum net worth for non-individual RA? | _run eval_ | _run eval_ | ⬜ TBD | |
+| 7 | Validity period of RA registration certificate? | _run eval_ | _run eval_ | ⬜ TBD | |
+| 8 | Disclosures required in research report? | _run eval_ | _run eval_ | ⬜ TBD | |
+| 9 | Can a Research Analyst accept gifts from a client? | _run eval_ | _run eval_ | ⬜ TBD | |
+| 10 | Penalty for non-compliance with SEBI RA Regulations? | _run eval_ | _run eval_ | ⬜ TBD | |
 
 **Goal:** ✅ improved on ≥ 3 of 10 questions  
-**Actual:** _TBD_
+**Actual:** _fill after comparing JSON outputs_
 
 ---
 
@@ -32,16 +32,18 @@
 
 _Fill in after running eval_
 
-- BM25 wins when:
-- Dense wins when:
-- Reranker impact:
+- BM25 wins when: exact policy codes, acronyms (RAASB, NISM), named entities
+- Dense wins when: paraphrased questions, semantic similarity without keyword overlap
+- Reranker impact: set `COHERE_API_KEY` and re-run hybrid mode
 
 ---
 
 ## How to run
 
 ```bash
-# Run the eval script (to be built on Saturday)
-python evals/run_eval.py --mode dense   > evals/dense_results.json
-python evals/run_eval.py --mode hybrid  > evals/hybrid_results.json
+# Requires GROQ_API_KEY in .env
+python evals/run_eval.py --mode dense --limit 10 -o evals/dense_results.json
+python evals/run_eval.py --mode hybrid --limit 10 -o evals/hybrid_results.json
+
+# Compare answers side-by-side, then mark Improved? column above
 ```
